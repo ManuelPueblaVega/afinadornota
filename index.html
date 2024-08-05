@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afinador de Instrumentos Musicales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .instrument-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .tuner {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:active {
+            background-color: #3e8e41;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Afinador de Instrumentos</h1>
+        <div class="instrument-selector">
+            <label for="instrument">Selecciona un instrumento:</label>
+            <select id="instrument">
+                <option value="guitar">Guitarra</option>
+                <option value="ukulele">Ukelele</option>
+                <option value="violin">Violín</option>
+            </select>
+        </div>
+        <div id="tuner" class="tuner"></div>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const instruments = {
+            guitar: ['E', 'A', 'D', 'G', 'B', 'E'],
+            ukulele: ['G', 'C', 'E', 'A'],
+            violin: ['G', 'D', 'A', 'E']
+        };
+
+        const frequencies = {
+            'E': 329.63,
+            'A': 440.00,
+            'D': 293.66,
+            'G': 392.00,
+            'B': 493.88,
+            'C': 261.63
+        };
+
+        let currentOscillator = null;
+        let currentGainNode = null;
+
+        function stopCurrentSound() {
+            if (currentOscillator) {
+                currentOscillator.stop();
+                currentOscillator.disconnect();
+            }
+            if (currentGainNode) {
+                currentGainNode.disconnect();
+            }
+        }
+
+        function createOscillator(frequency) {
+            stopCurrentSound();
+
+            currentOscillator = audioContext.createOscillator();
+            currentOscillator.type = 'sine';
+            currentOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            
+            currentGainNode = audioContext.createGain();
+            currentGainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            currentGainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
+            currentGainNode.gain.setValueAtTime(1, audioContext.currentTime + 1.5);
+            currentGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 2);
+            
+            currentOscillator.connect(currentGainNode);
+            currentGainNode.connect(audioContext.destination);
+            
+            currentOscillator.start();
+            currentOscillator.stop(audioContext.currentTime + 2);
+        }
+
+        function createTuner() {
+            const instrumentSelect = document.getElementById('instrument');
+            const tunerDiv = document.getElementById('tuner');
+            
+            function updateTuner() {
+                const selectedInstrument = instrumentSelect.value;
+                tunerDiv.innerHTML = '';
+                
+                instruments[selectedInstrument].forEach(note => {
+                    const button = document.createElement('button');
+                    button.textContent = note;
+                    button.onclick = () => createOscillator(frequencies[note]);
+                    tunerDiv.appendChild(button);
+                });
+            }
+            
+            instrumentSelect.addEventListener('change', updateTuner);
+            updateTuner();
+        }
+
+        createTuner();
+    </script>
+</body>
+</html>
