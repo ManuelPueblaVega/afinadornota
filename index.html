@@ -69,18 +69,32 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
         const instruments = {
-            guitar: ['E', 'A', 'D', 'G', 'B', 'E'],
-            ukulele: ['G', 'C', 'E', 'A'],
-            violin: ['G', 'D', 'A', 'E']
+            guitar: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'],
+            ukulele: ['G4', 'C4', 'E4', 'A4'],
+            violin: ['G3', 'D4', 'A4', 'E5']
         };
 
         const frequencies = {
-            'E': 329.63,
-            'A': 440.00,
-            'D': 293.66,
-            'G': 392.00,
-            'B': 493.88,
-            'C': 261.63
+            guitar: {
+                'E2': 82.41,
+                'A2': 110.00,
+                'D3': 146.83,
+                'G3': 196.00,
+                'B3': 246.94,
+                'E4': 329.63
+            },
+            ukulele: {
+                'G4': 392.00,
+                'C4': 261.63,
+                'E4': 329.63,
+                'A4': 440.00
+            },
+            violin: {
+                'G3': 196.00,
+                'D4': 293.66,
+                'A4': 440.00,
+                'E5': 659.25
+            }
         };
 
         let currentOscillator = null;
@@ -127,7 +141,7 @@
                 instruments[selectedInstrument].forEach(note => {
                     const button = document.createElement('button');
                     button.textContent = note;
-                    button.onclick = () => createOscillator(frequencies[note]);
+                    button.onclick = () => createOscillator(frequencies[selectedInstrument][note]);
                     tunerDiv.appendChild(button);
                 });
             }
